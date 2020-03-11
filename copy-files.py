@@ -16,7 +16,7 @@ fnames = [
     "pyOver.json",
     "pyOver-completed.json",
     "inputs/matrix.csv",
-    "inputs/buller-mach.lay",
+    "inputs/bullet-mach.lay",
     "common/overflow.inp",
     "common/fomo/mixsur.i",
     "dcf/GlobalDefs.tcl",
