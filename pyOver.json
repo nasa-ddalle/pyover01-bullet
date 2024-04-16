@@ -19,21 +19,8 @@
 
     // These commands are placed at the top of the PBS script
     "ShellCmds": [
-        ". $MODULESHOME/init/bash",
-        "module use -a /u/serogers/share/modulefiles",
-        "module use -a /u/ddalle/share/modulefiles",
-        "module load comp-intel/2016.2.181",
-        "module load mpi-sgi/mpt",
-        "module load cgt",
-        "module load overflow/2.2n_dp",
-        "module load python/2.7.12",
-        "module load pycart/devel"
     ],
     "BatchShellCmds": [
-        "module load tecplot/360EX_2017r1",
-        "module load texlive/2008",
-        "module load cgt/2.1s++_dp",
-        "ulimit -S -s 4194304"
     ],
     
     // Namelist template
@@ -43,7 +30,7 @@
     "RunControl": {
         // Run sequence
         "PhaseSequence": [0,    1,    2],
-        "PhaseIters":    [1500, 2000, 2500],
+        "PhaseIters":    [1000, 1250, 1500],
         // Operation modes
         "Prefix": "run",
         "MPI": true,
@@ -51,11 +38,12 @@
         "Resubmit": [false, false, true],
         "Continue": true,
         "mpicmd": null,
-        "nProc": 6,
+        "nProc": 40,
         // Dictionary of environment variables
         "Environ": {
             "F_UFMTENDIAN": "little",
             "FORT_BUFFERED": 0,
+            "OMP_NUM_THREADS": 1,
             "OMP_STACKSIZE": 800000000,
             "KMP_STACKSIZE": 100000000,
             "MPI_BUFS_PER_PROC": 2048,
@@ -86,10 +74,10 @@
     "Overflow": {
         "GLOBAL": {
             "NQT": 102,
-            "NSTEPS": [500,  500,  500,  500],
+            "NSTEPS": [250,  250,  250],
             "NSAVE":  [5000, 5000, 2000, 5000, -1000],
             "FMG": [true, false],
-            "FMGCYC": [[500,500]],
+            "FMGCYC": [[500,250]],
             "NGLVL": 3,
             "ISTART_QAVG": 15000,
             "WALLDIST": [2],
@@ -152,7 +140,7 @@
         // Reference values
         "RefArea": 3.14159,
         "RefLength": 2.0,
-        # Special coordinates
+        // Special coordinates
         "Points": {
             "CORE_MRP": [2.5, 0.0, 0.0]
         },
@@ -169,23 +157,22 @@
             "bullet_base"
         ],
         // Define what iterations to include
-        "nFirst": 2100,
+        "nFirst": 1100,
         "nStats": 200,
         // Where to store the aero data
         "Folder": "data",
-        // Key(s) by which to sort data book
-        "Sort": ["mach", "alpha", "beta"],
         // Input files for splitmx/mixsur if doing line loads or similar
         "fomo": "common/fomo"
     },
     
     // Define a simple report
     "Report": {
+        "Reports": ["bullet"],
         "bullet": {
             "Title": "OVERFLOW Bullet Example for pyOver",
             "Subtitle": "Example \\texttt{01\\_bullet}",
             "Restriction": "pyOver Example - Distribution Unlimited",
-            "Figures": ["CaseTables", "CasePlots"]
+            "Figures": ["CaseTables", "CasePlots", "FlowViz"]
         },
         // Define the figures
         "Figures": {
@@ -201,10 +188,64 @@
                     "arrow_CLL", "arrow_CLN", "arrow_CLM",
                     "cap_CA",    "L2",        "cap_CN"
                 ]
+            },
+            "FlowViz": {
+                "Header": "Flow visualization",
+                "Alignment": "center",
+                "Subfigures": [
+                    "MachSlice", "MachSlice-orange"
+                ]
             }
         },
         // Definitions for subfigures
         "Subfigures": {
+            // Tecplot figures
+            "MachSlice": {
+                "Type": "Tecplot",
+                "Layout": "inputs/bullet-mach.lay",
+                "FigWidth": 1024,
+                "Width": 0.48,
+                "Caption": "Surface $C_p$ and $y=0$ Mach slice",
+                "FieldMap": [3, 1000]
+            },
+            "MachSlice-orange": {
+                "Type": "MachSlice",
+                "ContourLevels": [
+                    {
+                        "NContour": 2,
+                        "MinLevel": 0,
+                        "MaxLevel": "max(1.4, 1.4*$mach)",
+                        "Delta": 0.05
+                    }
+                ],
+                "ColorMaps": [
+                    {
+                        "Name": "Diverging - Purple/Green modified",
+                        "NContour": 2,
+                        "ColorMap": {
+                            "0.0": "purple",
+                            "$mach": "white",
+                            "1.0": ["green", "orange"],
+                            "max(1.4,1.4*$mach)": "red"
+                        }
+                    }
+                ],
+                "Keys": {
+                    "GLOBALCONTOUR": {
+                        "LABELS": {
+                            "Value": {
+                                "AUTOLEVELSKIP": 2,
+                                "NUMFORMAT": {
+                                    "FORMATTING": "'FIXEDFLOAT'",
+                                    "PRECISION": 1,
+                                    "TIMEDATEFORMAT": "''"
+                                }
+                            },
+                            "Parameter": 2
+                        }
+                    }
+                }
+            },
             // Table of trajectory variables
             "CaseConds": {
                 "Type": "Conditions",
@@ -247,7 +288,7 @@
             "L2": {
                 "Type": "PlotL2",
                 "FigWidth": 5.5,
-                "FigHeight": 6,
+                "FigHeight": 6.0,
                 "Width": 0.33,
                 "nPlotFirst": 1,
                 "Caption": "$L_2$ Density Residual"
@@ -257,7 +298,7 @@
                 "Type": "PlotLineLoad",
                 "Component": "ll_bullet",
                 "FigWidth": 5.5,
-                "FigHeight": 6,
+                "FigHeight": 6.0,
                 "Width": 0.33,
                 "SeamCurves": "smy",
                 "SeamLocation": "bottom"
