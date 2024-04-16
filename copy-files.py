@@ -14,7 +14,6 @@ fwork = os.path.join(fdir, "work")
 # Files list
 fnames = [
     "pyOver.json",
-    "pyOver-completed.json",
     "inputs/matrix.csv",
     "inputs/bullet-mach.lay",
     "common/grid.in",
